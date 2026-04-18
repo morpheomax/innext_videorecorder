@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio Recorder</title>
+  <meta name="description"
+    content="Grabador y editor de video multipista profesional, directo en tu navegador. Sin servidores, 100% privado.">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- ==================== RECORDING SET ==================== -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-mark">
+          <i class="ph ph-record"></i>
+          <span class="title">Innext Video Studio</span>
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <button id="tutorial-btn" class="editor-entry-btn" title="Tutorial de uso" style="padding: 4px 10px; font-size: 0.75rem;"><i class="ph ph-question"></i> Ayuda</button>
+          <button id="close-sidebar-btn" class="icon-btn" title="Cerrar panel (Tab)" aria-label="Cerrar barra lateral">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <section class="settings-group">
+          <h3>Fuentes</h3>
+          <button id="select-screen-btn" class="primary-btn fluid">
+            <i class="ph ph-monitor"></i> Elegir Pantalla
+          </button>
+
+          <div class="setting-item mt-2">
+            <label for="camera-select">Cámara</label>
+            <select id="camera-select">
+              <option value="">Desactivada</option>
+            </select>
+          </div>
+
+          <div class="setting-toggle">
+            <label for="mirror-cam-toggle">Modo espejo (Cámara)</label>
+            <input type="checkbox" id="mirror-cam-toggle" checked>
+          </div>
+
+          <div class="setting-item">
+            <label for="mic-select">Micrófono</label>
+            <select id="mic-select">
+              <option value="">Desactivado</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <label>Volumen Micrófono (<span id="mic-vol-label">100</span>%)</label>
+            <input type="range" id="mic-gain" min="0" max="2" step="0.1" value="1">
+          </div>
+        </section>
+
+        <section class="settings-group">
+          <h3>Formato</h3>
+          <div class="format-buttons">
+            <button class="format-btn active" data-format="16:9" title="Horizontal 16:9"><i
+                class="ph ph-rectangle"></i></button>
+            <button class="format-btn" data-format="9:16" title="Vertical 9:16"><i
+                class="ph ph-device-mobile"></i></button>
+            <button class="format-btn" data-format="1:1" title="Cuadrado 1:1"><i class="ph ph-square"></i></button>
+          </div>
+        </section>
+
+        <section class="settings-group">
+          <h3>Cámara PiP</h3>
+          <label>Estilo</label>
+          <div class="style-buttons">
+            <button class="style-btn active" data-style="circle" title="Círculo"><i class="ph ph-circle"></i></button>
+            <button class="style-btn" data-style="rounded" title="Redondeado"><i class="ph ph-app-window"></i></button>
+            <button class="style-btn" data-style="square" title="Cuadrado"><i class="ph ph-square"></i></button>
+          </div>
+          <div class="setting-item mt-2">
+            <label for="cam-border-color">Color de Borde</label>
+            <input type="color" id="cam-border-color" value="#ffffff" class="color-picker-full"
+              title="Personalizar color del marco">
+          </div>
+        </section>
+
+        <section class="settings-group system-audio-status">
+          <div class="status-indicator">
+            <i class="ph ph-speaker-high" id="sys-audio-icon"></i>
+            <span id="sys-audio-text">Audio de sistema inactivo</span>
+          </div>
+          <small>Comparte audio al elegir pestaña o pantalla completa.</small>
+        </section>
+
+        <!-- Separator + Editor Entry -->
+        <div class="sidebar-divider"></div>
+        <section class="settings-group">
+          <button id="open-editor-btn" class="editor-entry-btn fluid">
+            <i class="ph ph-film-strip"></i>
+            <span>Abrir Editor Multipista</span>
+            <i class="ph ph-arrow-right editor-entry-arrow"></i>
+          </button>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Área Principal de Preview -->
+    <main id="main-stage">
+      <div id="composer-wrapper">
+        <canvas id="composer-canvas"></canvas>
+        <div class="drag-overlay" id="drag-overlay"></div>
+      </div>
+
+      <!-- Barra de controles inferior -->
+      <div class="controls-bar">
+        <button id="toggle-sidebar-btn" class="icon-btn" title="Ajustes (Tab)">
+          <i class="ph ph-gear"></i>
+        </button>
+
+        <div class="record-controls">
+          <span id="timer-display" class="timer">00:00:00</span>
+          <button id="record-btn" class="record-btn btn-action" title="Grabar">
+            <div class="record-icon"></div>
+            <span>Grabar</span>
+          </button>
+          <button id="pause-btn" class="icon-btn state-hidden" title="Pausar">
+            <i class="ph ph-pause"></i>
+          </button>
+        </div>
+
+        <div class="dummy-spacer"></div>
+      </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+
+    <!-- ==================== NLE EDITOR VIEW ==================== -->
+    <section id="editor-view" class="state-hidden">
+
+      <!-- Top Bar -->
+      <header class="nle-topbar">
+        <div class="nle-topbar-left">
+          <button id="close-editor-btn" class="icon-btn" title="Volver al Set">
+            <i class="ph ph-arrow-left"></i>
+          </button>
+          <div class="logo-mark small">
+            <i class="ph ph-film-strip"></i>
+            <span>Editor</span>
+          </div>
+        </div>
+
+        <div class="nle-topbar-center">
+          <button id="editor-play-btn" class="icon-btn" title="Play / Pause (Espacio)">
+            <i class="ph ph-play"></i>
+          </button>
+          <span id="editor-time-display" class="nle-timecode">00:00:00 / 00:00:00</span>
+          <button id="split-btn" class="icon-btn nle-tool-btn" title="Cortar en cabezal (C)">
+            <i class="ph ph-scissors"></i>
+          </button>
+        </div>
+
+        <div class="nle-topbar-right">
+          <button id="load-project-btn" class="icon-btn nle-tool-btn" title="Cargar proyecto guardado">
+            <i class="ph ph-folder-open"></i>
+          </button>
+          <button id="save-project-btn" class="icon-btn" title="Guardar proyecto">
+            <i class="ph ph-floppy-disk"></i>
+          </button>
+          <button id="export-video-btn" class="nle-export-btn">
+            <i class="ph ph-download-simple"></i>
+            <span>Exportar</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Quick Actions Bar (contextual, shown when clip selected) -->
+      <div id="nle-quickbar" class="nle-quickbar" style="display:none;">
+        <span class="quickbar-label">Clip seleccionado:</span>
+        <span id="quickbar-clip-name" class="quickbar-clip-name">—</span>
+        <div class="quickbar-sep"></div>
+        <button id="qa-split" class="qa-btn" title="Cortar en cabezal [C]"><i
+            class="ph ph-scissors"></i><span>Cortar</span></button>
+        <button id="qa-delete" class="qa-btn danger" title="Eliminar clip [Del]"><i
+            class="ph ph-trash"></i><span>Eliminar</span></button>
+        <button id="qa-duplicate" class="qa-btn" title="Duplicar clip"><i
+            class="ph ph-copy"></i><span>Duplicar</span></button>
+        <button id="qa-mute" class="qa-btn" title="Silenciar/Activar"><i
+            class="ph ph-speaker-high"></i><span>Silenciar</span></button>
+        <button id="qa-fill" class="qa-btn" title="Llenar pantalla completa"><i
+            class="ph ph-arrows-out"></i><span>Pantalla completa</span></button>
+        <button id="qa-reset-size" class="qa-btn" title="Tamaño original"><i
+            class="ph ph-arrows-in"></i><span>Original</span></button>
+        <button id="qa-screenshot" class="qa-btn" title="Guardar frame actual como PNG"><i
+            class="ph ph-camera"></i><span>Frame</span></button>
+        <div class="quickbar-sep"></div>
+        <div class="qa-compact-control" title="Volumen (%)">
+          <i class="ph ph-speaker-high"></i>
+          <input type="number" id="qa-volume" min="0" max="100" value="100" class="qa-input-mini">
+        </div>
+        <div class="quickbar-sep"></div>
+        <div class="qa-compact-control" title="Velocidad">
+          <i class="ph ph-fast-forward"></i>
+          <select id="qa-speed" class="qa-select-mini">
+            <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1.0x</option>
+            <option value="1.5">1.5x</option><option value="2">2.0x</option>
+          </select>
+        </div>
+        <div class="quickbar-sep"></div>
+        <label class="quickbar-zoom-label">Zoom:</label>
+        <input type="range" id="timeline-zoom" min="20" max="200" value="60" class="quickbar-zoom-slider"
+          title="Zoom horizontal de la línea de tiempo">
+        <span id="timeline-zoom-val">60</span>
+      </div>
+
+      <!-- Main NLE Body -->
+      <div class="nle-body">
+
+        <!-- Preview Canvas -->
+        <div class="nle-preview-panel" id="nle-preview-panel">
+
+          <!-- Preview top minibar: view mode + fit/fill -->
+          <div class="preview-minibar">
+            <div class="preview-mode-group">
+              <button id="view-fit-btn" class="preview-mode-btn active"
+                title="Contiene el video completo sin recortar (contain)">
+                <i class="ph ph-frame-corners"></i> Fit
+              </button>
+              <button id="view-fill-btn" class="preview-mode-btn"
+                title="Rellena el espacio, puede recortar bordes (cover)">
+                <i class="ph ph-crop"></i> Fill
+              </button>
+            </div>
+            <div class="preview-size-group">
+              <button id="preview-shrink-btn" class="preview-size-btn" title="Reducir previsualizador">
+                <i class="ph ph-minus-square"></i>
+              </button>
+              <span class="preview-size-label" id="preview-size-pct">55%</span>
+              <button id="preview-grow-btn" class="preview-size-btn" title="Agrandar previsualizador">
+                <i class="ph ph-plus-square"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="nle-canvas-wrapper">
+            <canvas id="nle-canvas"></canvas>
+            <!-- Live video elements overlaid for interactive preview -->
+            <div id="nle-video-slots"></div>
+            <!-- Drag & Drop overlays container (text/logo/images) -->
+            <div id="editor-overlays-container"></div>
+          </div>
+
+          <!-- Overlays Toolbar -->
+          <div class="nle-overlays-toolbar">
+            <div class="overlay-input-group">
+              <input type="color" id="overlay-text-color" value="#ffffff" title="Color del texto">
+              <input type="text" id="overlay-text-input" placeholder="Añadir texto…">
+              <button id="add-text-btn" class="nle-inline-btn"><i class="ph ph-plus"></i> Texto</button>
+            </div>
+            <div class="overlay-input-group">
+              <input type="file" id="overlay-logo-input" accept="image/png,image/svg+xml" class="state-hidden">
+              <button id="add-logo-btn" class="nle-inline-btn"><i class="ph ph-image"></i> Logo</button>
+            </div>
+          </div>
+
+          <!-- Export Progress -->
+          <div id="export-progress" class="nle-export-progress" style="display:none;">
+            <div class="progress-bar">
+              <div class="progress-fill" id="export-progress-fill"></div>
+            </div>
+            <small id="export-progress-text">Procesando… 0%</small>
+          </div>
+        </div>
+
+        <!-- Drag divider: resize preview ↔ tracks panels -->
+        <div id="nle-resize-bar" class="nle-resize-bar" title="Arrastra para redimensionar"></div>
+
+        <!-- Track Panel (right side) -->
+        <div class="nle-tracks-panel">
+
+          <!-- Track Controls header -->
+          <div class="nle-tracks-header">
+            <span class="nle-tracks-label">Canales</span>
+            <div class="nle-tracks-actions">
+              <input type="file" id="import-video-file" accept="video/*" class="state-hidden" multiple>
+              <input type="file" id="import-audio-file" accept="audio/*" class="state-hidden" multiple>
+              <input type="file" id="import-image-file" accept="image/*" class="state-hidden" multiple>
+              <button id="import-video-btn" class="nle-add-btn" title="Importar video"><i
+                  class="ph ph-video-camera"></i> Video</button>
+              <button id="import-audio-btn" class="nle-add-btn" title="Importar audio"><i class="ph ph-waveform"></i>
+                Audio</button>
+              <button id="import-image-btn" class="nle-add-btn" title="Importar imagen"><i class="ph ph-image"></i>
+                Imagen</button>
+            </div>
+          </div>
+
+          <!-- Scrollable timeline wrapper -->
+          <div class="nle-timeline-scroll" id="nle-timeline-scroll">
+
+            <!-- Timeline ruler -->
+            <div class="nle-ruler-row">
+              <div class="nle-track-label-col"></div>
+              <div class="nle-ruler" id="nle-ruler">
+                <div class="nle-playhead" id="nle-playhead"></div>
+              </div>
+            </div>
+
+            <!-- VIDEO TRACKS V1–V4 -->
+            <div id="video-tracks-container">
+              <!-- V1 -->
+              <div class="nle-track" data-track-type="video" data-track-index="0">
+                <div class="nle-track-label">
+                  <span class="track-name">V1</span>
+                  <button class="track-toggle-btn eye-btn active" title="Visibilidad"><i class="ph ph-eye"></i></button>
+                  <button class="track-mute-btn" title="Silenciar audio del video"><i
+                      class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="video" data-track-index="0"></div>
+              </div>
+              <!-- V2 -->
+              <div class="nle-track" data-track-type="video" data-track-index="1">
+                <div class="nle-track-label">
+                  <span class="track-name">V2</span>
+                  <button class="track-toggle-btn eye-btn active" title="Visibilidad"><i class="ph ph-eye"></i></button>
+                  <button class="track-mute-btn" title="Silenciar audio del video"><i
+                      class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="video" data-track-index="1"></div>
+              </div>
+              <!-- V3 -->
+              <div class="nle-track" data-track-type="video" data-track-index="2">
+                <div class="nle-track-label">
+                  <span class="track-name">V3</span>
+                  <button class="track-toggle-btn eye-btn active" title="Visibilidad"><i class="ph ph-eye"></i></button>
+                  <button class="track-mute-btn" title="Silenciar audio del video"><i
+                      class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="video" data-track-index="2"></div>
+              </div>
+              <!-- V4 -->
+              <div class="nle-track" data-track-type="video" data-track-index="3">
+                <div class="nle-track-label">
+                  <span class="track-name">V4</span>
+                  <button class="track-toggle-btn eye-btn active" title="Visibilidad"><i class="ph ph-eye"></i></button>
+                  <button class="track-mute-btn" title="Silenciar audio del video"><i
+                      class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="video" data-track-index="3"></div>
+              </div>
+            </div>
+
+            <!-- Track separator -->
+            <div class="nle-tracks-separator"><span>Audio</span></div>
+
+            <!-- AUDIO TRACKS A1–A4 -->
+            <div id="audio-tracks-container">
+              <!-- A1 -->
+              <div class="nle-track audio-track" data-track-type="audio" data-track-index="0">
+                <div class="nle-track-label">
+                  <span class="track-name">A1</span>
+                  <button class="track-mute-btn active" title="Silenciar"><i class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="audio" data-track-index="0"></div>
+              </div>
+              <!-- A2 -->
+              <div class="nle-track audio-track" data-track-type="audio" data-track-index="1">
+                <div class="nle-track-label">
+                  <span class="track-name">A2</span>
+                  <button class="track-mute-btn active" title="Silenciar"><i class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="audio" data-track-index="1"></div>
+              </div>
+              <!-- A3 -->
+              <div class="nle-track audio-track" data-track-type="audio" data-track-index="2">
+                <div class="nle-track-label">
+                  <span class="track-name">A3</span>
+                  <button class="track-mute-btn active" title="Silenciar"><i class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="audio" data-track-index="2"></div>
+              </div>
+              <!-- A4 -->
+              <div class="nle-track audio-track" data-track-type="audio" data-track-index="3">
+                <div class="nle-track-label">
+                  <span class="track-name">A4</span>
+                  <button class="track-mute-btn active" title="Silenciar"><i class="ph ph-speaker-high"></i></button>
+                </div>
+                <div class="nle-track-lane" data-track-type="audio" data-track-index="3"></div>
+              </div>
+            </div>
+
+          </div><!-- /nle-timeline-scroll -->
+
+        </div><!-- /nle-tracks-panel -->
+      </div><!-- /nle-body -->
+    </section><!-- /editor-view -->
+
+  </div><!-- /app -->
+
+  <script type="module" src="js/tutorial.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

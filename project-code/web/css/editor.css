@@ -1,0 +1,780 @@
+/* css/editor.css — NLE Multi-track Editor */
+
+/* ============================================================
+   LAYOUT PRINCIPAL
+   ============================================================ */
+
+#editor-view {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0F1117;
+  color: #E2E8F0;
+  font-family: var(--font-family);
+  z-index: 200;
+}
+
+/* ============================================================
+   QUICK ACTIONS BAR
+   ============================================================ */
+.nle-quickbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: #1A2035;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.quickbar-label {
+  font-size: 0.72rem;
+  color: #475569;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.quickbar-clip-name {
+  font-size: 0.8rem;
+  color: #818CF8;
+  font-weight: 600;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quickbar-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 4px;
+}
+.qa-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94A3B8;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: var(--font-family);
+}
+.qa-btn:hover { background: rgba(255,255,255,0.12); color: #E2E8F0; }
+.qa-btn.danger:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); color: #EF4444; }
+.qa-btn.active { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.5); color: #818CF8; }
+.qa-btn i { font-size: 0.9rem; }
+
+.quickbar-zoom-label { font-size: 0.72rem; color: #475569; }
+.quickbar-zoom-slider { width: 80px; accent-color: #818CF8; cursor: pointer; }
+#timeline-zoom-val { font-size: 0.72rem; color: #475569; min-width: 24px; }
+
+/* ============================================================
+   VIDEO SLOTS (Live interactive preview elements)
+   ============================================================ */
+#nle-video-slots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* slots themselves enable pointer on children */
+}
+
+.nle-video-slot {
+  position: absolute;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border-color 0.1s;
+  pointer-events: auto;
+  cursor: move;
+}
+.nle-video-slot:hover { border-color: rgba(129,140,248,0.5); }
+.nle-video-slot.slot-selected { border-color: #F59E0B; box-shadow: 0 0 0 1px rgba(245,158,11,0.3); }
+
+.nle-video-slot video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* Resize handles on selected video slot */
+.resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #F59E0B;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  z-index: 20;
+  pointer-events: auto;
+}
+.resize-handle.nw { top: -6px;  left: -6px;  cursor: nw-resize; }
+.resize-handle.ne { top: -6px;  right: -6px; cursor: ne-resize; }
+.resize-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+.resize-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
+.resize-handle.n  { top: -6px;  left: calc(50% - 6px); cursor: n-resize; }
+.resize-handle.s  { bottom: -6px; left: calc(50% - 6px); cursor: s-resize; }
+.resize-handle.e  { right: -6px; top: calc(50% - 6px); cursor: e-resize; }
+.resize-handle.w  { left: -6px;  top: calc(50% - 6px); cursor: w-resize; }
+
+/* Overlay element resize handles */
+.draggable-overlay .ov-resize {
+  position: absolute;
+  width: 10px; height: 10px;
+  background: #818CF8;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  cursor: se-resize;
+  bottom: -5px; right: -5px;
+  z-index: 10;
+  display: none;
+}
+.draggable-overlay:hover .ov-resize { display: block; }
+
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.nle-topbar {
+  height: 52px;
+  background: #161B26;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.nle-topbar-left,
+.nle-topbar-right,
+.nle-topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Left logo */
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #E2E8F0;
+}
+.logo-mark.small { font-size: 0.9rem; }
+.logo-mark i { color: #818CF8; font-size: 1.1rem; }
+
+/* Topbar icon buttons */
+#editor-view .icon-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #94A3B8;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+#editor-view .icon-btn:hover { background: rgba(255,255,255,0.12); color: #E2E8F0; }
+
+.nle-timecode {
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  color: #94A3B8;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 5px 12px;
+  min-width: 160px;
+  text-align: center;
+}
+
+.nle-tool-btn {
+  background: rgba(129,140,248,0.1) !important;
+  border-color: rgba(129,140,248,0.3) !important;
+  color: #818CF8 !important;
+}
+.nle-tool-btn:hover { background: rgba(129,140,248,0.2) !important; }
+
+.nle-export-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.nle-export-btn:hover { background: #4338CA; }
+.nle-export-btn:disabled { background: #374151; color: #6B7280; cursor: not-allowed; }
+
+/* ============================================================
+   BODY (Preview | Tracks)
+   ============================================================ */
+.nle-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ============================================================
+   PREVIEW PANEL (Left ~55%)
+   ============================================================ */
+.nle-preview-panel {
+  width: var(--preview-w, 55%);
+  min-width: 280px;
+  max-width: 88%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  background: #0A0D14;
+  padding: 14px 16px;
+  gap: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  user-select: none; /* prevent text selection while resizing */
+}
+
+#nle-canvas-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#nle-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ============================================================
+   PREVIEW MINIBAR  (fit/fill + size controls)
+   ============================================================ */
+.preview-minibar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 8px;
+}
+.preview-mode-group, .preview-size-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 2px;
+}
+.preview-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #64748B;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: var(--font-family);
+}
+.preview-mode-btn:hover { color: #E2E8F0; }
+.preview-mode-btn.active {
+  background: rgba(129,140,248,0.18);
+  color: #818CF8;
+  box-shadow: inset 0 0 0 1px rgba(129,140,248,0.3);
+}
+.preview-size-btn {
+  background: none; border: none;
+  color: #64748B; cursor: pointer;
+  font-size: 1.1rem; padding: 3px 6px;
+  border-radius: 4px; transition: color 0.12s;
+  display: flex; align-items: center;
+}
+.preview-size-btn:hover { color: #E2E8F0; }
+.preview-size-label {
+  font-size: 0.72rem; color: #475569;
+  min-width: 36px; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   VIDEO SLOT OBJECT-FIT MODES
+   ============================================================ */
+/* Default (set via JS class on #nle-video-slots) */
+#nle-video-slots.mode-fit .nle-video-slot video {
+  object-fit: contain;
+  background: #000;
+}
+#nle-video-slots.mode-fill .nle-video-slot video {
+  object-fit: cover;
+}
+
+/* ============================================================
+   PANEL RESIZE DIVIDER
+   ============================================================ */
+.nle-resize-bar {
+  width: 6px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  border-left:  1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  cursor: col-resize;
+  position: relative;
+  transition: background 0.15s;
+  z-index: 10;
+}
+.nle-resize-bar:hover, .nle-resize-bar.dragging {
+  background: rgba(129,140,248,0.25);
+  border-color: rgba(129,140,248,0.4);
+}
+.nle-resize-bar::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 40px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.15);
+}
+.nle-resize-bar:hover::after { background: rgba(129,140,248,0.7); }
+
+
+/* Overlays drag */
+#editor-overlays-container {
+  position: absolute; inset: 0;
+  pointer-events: none;
+}
+.draggable-overlay {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  padding: 6px;
+  border: 1px dashed transparent;
+  user-select: none;
+  display: inline-block;
+}
+.draggable-overlay:hover { border-color: rgba(129,140,248,0.6); }
+.draggable-overlay:active { cursor: grabbing; }
+.draggable-overlay img { pointer-events: none; max-width: 180px; height: auto; }
+.draggable-overlay button.remove-overlay {
+  position: absolute; top: -10px; right: -10px;
+  background: #EF4444; color: #fff; border: none;
+  border-radius: 50%; width: 18px; height: 18px;
+  font-size: 9px; cursor: pointer; display: none;
+  align-items: center; justify-content: center;
+}
+.draggable-overlay:hover button.remove-overlay { display: flex; }
+
+/* Overlays toolbar */
+.nle-overlays-toolbar {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.overlay-input-group {
+  display: flex; align-items: center; gap: 6px;
+}
+.overlay-input-group input[type="text"] {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #E2E8F0;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  font-family: var(--font-family);
+  outline: none;
+  width: 160px;
+}
+.overlay-input-group input[type="color"] {
+  width: 30px; height: 30px; border: none; border-radius: 4px;
+  background: none; cursor: pointer; padding: 0;
+}
+.nle-inline-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #94A3B8;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.nle-inline-btn:hover { background: rgba(129,140,248,0.15); color: #818CF8; }
+
+/* Export progress */
+.nle-export-progress {
+  padding: 8px 0 0;
+}
+.progress-bar {
+  width: 100%; height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px; overflow: hidden;
+}
+.progress-fill {
+  width: 0%; height: 100%;
+  background: #4F46E5;
+  transition: width 0.2s;
+}
+.nle-export-progress small { display: block; text-align: center; margin-top: 5px; font-size: 0.75rem; color: #6B7280; }
+
+/* ============================================================
+   TRACKS PANEL (Right ~45%)
+   ============================================================ */
+.nle-tracks-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Scrollable timeline wrapper — syncs ruler + all tracks horizontally */
+.nle-timeline-scroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  position: relative;
+}
+.nle-timeline-scroll::-webkit-scrollbar { height: 10px; width: 8px; }
+.nle-timeline-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+.nle-timeline-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 5px; }
+.nle-timeline-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+.nle-tracks-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: #161B26;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.nle-tracks-label {
+  font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #475569;
+}
+.nle-tracks-actions { display: flex; gap: 6px; }
+.nle-add-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94A3B8; border-radius: 6px;
+  padding: 5px 10px; font-size: 0.8rem; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.nle-add-btn:hover { background: rgba(79,70,229,0.2); color: #818CF8; border-color: rgba(79,70,229,0.4); }
+
+/* Ruler */
+.nle-ruler-row {
+  display: flex; height: 24px;
+  background: #161B26;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 8;
+}
+.nle-track-label-col {
+  width: 80px; flex-shrink: 0;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  position: sticky;
+  left: 0;
+  background: #161B26;
+  z-index: 3;
+}
+.nle-ruler {
+  position: relative;
+  min-width: 600px;
+  cursor: pointer;
+}
+.nle-ruler-tick {
+  position: absolute; top: 0; bottom: 0;
+  width: 1px; background: rgba(255,255,255,0.1);
+}
+.nle-ruler-tick span {
+  position: absolute; bottom: 3px; left: 2px;
+  font-size: 9px; color: #475569;
+}
+.nle-playhead {
+  position: absolute; top: 0; bottom: 0;
+  width: 2px; background: #F59E0B;
+  z-index: 10; pointer-events: none;
+  left: 0;
+}
+
+/* Track rows area */
+#video-tracks-container,
+#audio-tracks-container {
+  /* overflow controlled by parent .nle-timeline-scroll */
+}
+
+.nle-tracks-separator {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 16px;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
+}
+.nle-tracks-separator span {
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #334155;
+}
+
+/* Track Row */
+.nle-track {
+  display: flex; height: 52px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.nle-track.audio-track { height: 44px; }
+
+.nle-track-label {
+  width: 80px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 8px;
+  background: #161B26;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+.track-name {
+  font-size: 0.75rem; font-weight: 700;
+  color: #475569; flex-shrink: 0; min-width: 24px;
+}
+.track-toggle-btn, .track-mute-btn {
+  background: none; border: none; cursor: pointer;
+  color: #334155; font-size: 0.75rem; padding: 3px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s;
+}
+.track-toggle-btn.active { color: #818CF8; }
+.track-mute-btn.active { color: #10B981; }
+.track-toggle-btn.muted, .track-mute-btn.muted { color: #EF4444; }
+.track-toggle-btn:hover, .track-mute-btn:hover { color: #E2E8F0; }
+
+/* Track Lane */
+.nle-track-lane {
+  flex: 1; position: relative;
+  min-width: 600px;
+  overflow: visible;
+  background: rgba(255,255,255,0.015);
+  transition: background 0.12s;
+}
+.nle-track-lane.drag-over {
+  background: rgba(79,70,229,0.12);
+  box-shadow: inset 0 0 0 1.5px rgba(129,140,248,0.4);
+}
+
+/* Clip being dragged across tracks */
+.nle-clip.dragging {
+  z-index: 100;
+  opacity: 0.85;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+/* Clip blocks inside the lane */
+.nle-clip {
+  position: absolute; top: 4px; bottom: 4px;
+  min-width: 40px;
+  border-radius: 5px;
+  display: flex; align-items: center; overflow: hidden;
+  cursor: grab; user-select: none;
+  border: 1.5px solid transparent;
+  transition: border-color 0.1s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.nle-clip:active { cursor: grabbing; }
+.nle-clip.selected { border-color: #F59E0B; }
+
+/* Video clip color */
+.nle-clip.type-video { background: linear-gradient(135deg, #312E81 0%, #4338CA 100%); }
+/* Audio clip color */
+.nle-clip.type-audio { background: linear-gradient(135deg, #134E4A 0%, #10B981 100%); }
+/* Image clip color */
+.nle-clip.type-image { background: linear-gradient(135deg, #7C2D12 0%, #EA580C 100%); }
+
+.nle-clip-label {
+  padding: 0 8px;
+  font-size: 0.72rem; font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* Resize handles on clip edges */
+.nle-clip-handle {
+  position: absolute; top: 0; bottom: 0; width: 8px;
+  background: rgba(255,255,255,0.2);
+  cursor: ew-resize;
+}
+.nle-clip-handle.left { left: 0; border-radius: 4px 0 0 4px; }
+.nle-clip-handle.right { right: 0; border-radius: 0 4px 4px 0; }
+
+/* Clip delete button */
+.nle-clip-del {
+  position: absolute; top: -6px; right: -6px;
+  width: 16px; height: 16px;
+  background: #EF4444; color: #fff; border: none;
+  border-radius: 50%; font-size: 8px; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  z-index: 5;
+}
+.nle-clip:hover .nle-clip-del { display: flex; }
+
+/* Playhead in track lanes */
+.lane-playhead {
+  position: absolute; top: 0; bottom: 0;
+  width: 1px; background: #F59E0B;
+  pointer-events: none; z-index: 5;
+}
+
+/* Sidebar additions for recording set */
+.sidebar-divider {
+  margin: 10px 16px;
+  border: none; border-top: 1px solid rgba(0,0,0,0.07);
+}
+.editor-entry-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem; font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+}
+.editor-entry-btn:hover {
+  background: #EEF2FF;
+  border-color: #818CF8;
+  color: #4338CA;
+}
+.editor-entry-arrow { margin-left: auto; color: #94A3B8; }
+
+.color-picker-full { width: 100%; height: 38px; cursor: pointer; border: 1px solid var(--glass-border); border-radius: var(--radius-sm); }
+
+/* Compact Quickbar Controls */
+.qa-compact-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.03);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.qa-compact-control i {
+  color: #64748B;
+  font-size: 0.9rem;
+}
+.qa-input-mini {
+  width: 46px;
+  background: transparent;
+  border: none;
+  color: #E2E8F0;
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  padding: 2px;
+  text-align: right;
+  outline: none;
+}
+.qa-select-mini {
+  background: transparent;
+  border: none;
+  color: #E2E8F0;
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  padding: 2px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  text-align: center;
+}
+.qa-select-mini option {
+  background: #1E293B;
+  color: #fff;
+}
+
+/* ============================================================
+   RESPONSIVO NLE (TABLETS/MOVILES)
+   ============================================================ */
+@media (max-width: 900px) {
+  .nle-body {
+    flex-direction: column;
+  }
+  
+  #nle-preview-panel {
+    /* Fixed horizontal layout on mobile: full width, fixed height to keep timeline visible */
+    width: 100% !important; 
+    height: 35vh; 
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  
+  #nle-resize-bar {
+    display: none;
+  }
+  
+  #nle-tracks-panel {
+    flex: 1;
+    height: 65vh;
+  }
+
+  /* Compact topbar */
+  .nle-topbar {
+    padding: 0 8px;
+    gap: 8px;
+  }
+  .nle-topbar-center .nle-timecode {
+    font-size: 0.75rem;
+  }
+  .nle-tool-btn, .icon-btn {
+    width: 28px; height: 28px;
+  }
+  
+  /* Quickbar horizontal scroll */
+  #nle-quickbar {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+  }
+  
+  /* Make clip limits touch-friendly */
+  .nle-clip-handle {
+    width: 14px;
+    background: rgba(255,255,255,0.4);
+  }
+  .nle-clip-handle.left { left: 0; }
+  .nle-clip-handle.right { right: 0; }
+}
