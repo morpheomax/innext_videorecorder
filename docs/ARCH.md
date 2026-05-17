@@ -1,43 +1,45 @@
-# Arquitectura — Opción B (recomendada)
+# Arquitectura Actual
 
-## Visión
-App web estática (SPA). Todo se procesa en el navegador.
+## Vision
+Sitio estatico indexable con Astro y aplicacion cliente para el estudio en React. Todo el procesamiento multimedia sigue ocurriendo en el navegador.
 
-## Módulos
-1) Capture
-- getDisplayMedia: pantalla
-- getUserMedia: cámara y mic
+## Capas
+1) Sitio publico
+- Astro
+- Landing, privacidad y ayuda
+- Metadatos SEO y sitemap
 
-2) AudioMixer (Web Audio API)
-- AudioContext
-- MediaStreamSource para mic y para system/tab si existe
-- GainNode por fuente
-- MediaStreamDestination para track final
+2) Studio App
+- React + TypeScript
+- Carga solo en `/studio`
+- Sin SSR para APIs multimedia
 
-3) CanvasCompositor
-- Canvas 2D
-- Dibuja pantalla como base
-- Dibuja cámara con máscara (circle/square/rounded)
-- canvas.captureStream(fps) genera stream final de video
+3) Core multimedia
+- `capture`: getDisplayMedia y getUserMedia
+- `audio`: mezcla por Web Audio API
+- `compositor`: Canvas 2D + captureStream
+- `recorder`: MediaRecorder con fallback de mimeType
 
-4) RecorderPipeline
-- Combina:
-  - videoTrack del canvasStream
-  - audioTrack del mixerDestination.stream
-- MediaRecorder para grabar a chunks
+4) Capas futuras
+4) Editor
+- Timeline multipista inicial
+- Importacion de video, audio, imagen y texto
+- Export WebM
 
-5) LocalLibrary (IndexedDB)
-- recordings + projects + settings
+5) Storage
+- IndexedDB para grabaciones y proyectos
+- Borrado local total
 
-6) Editor (Sprint 3)
-- Trim + overlays
-- Exporter (WebM directo / MP4 opcional)
+6) Export
+- WebM actual
+- MP4 posterior y opcional
 
-## Decisiones
+## Decisiones activas
 - Formato default: WebM
-- MP4: solo si browser soporta o por export con ffmpeg.wasm
+- MP4: posterior y opcional
 - No backend, no cuentas, no storage remoto
+- Preview del studio = resultado final
 
 ## Deploy
-- Publicación como estático en Apache/Nginx/cPanel
-- Recomendado: headers CSP + COOP/COEP si luego se usa ffmpeg.wasm con cross-origin isolation
+- Salida estatica para hosting compatible con cPanel
+- Recomendado configurar CSP y headers de endurecimiento en el hosting

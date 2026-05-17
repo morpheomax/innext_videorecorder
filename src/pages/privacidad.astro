@@ -1,0 +1,34 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+
+const title = 'Privacidad | Studio Recorder';
+const description = 'Politica de privacidad simple para una herramienta que procesa todo localmente y sin registro.';
+---
+
+<SiteLayout title={title} description={description}>
+  <main class="shell py-16">
+    <a href="/" class="text-sm text-sky-300">Volver al inicio</a>
+    <div class="mt-6 max-w-4xl rounded-[32px] border border-white/8 bg-white/4 p-8">
+      <p class="text-sm uppercase tracking-[0.3em] text-emerald-300">Privacidad primero</p>
+      <h1 class="mt-4 text-4xl font-semibold text-white">Todo local. Sin cuentas. Sin servidores.</h1>
+      <div class="mt-8 space-y-5 text-base leading-8 text-slate-300">
+        <p>
+          Studio Recorder fue pensado para ayudar a la comunidad con una herramienta profesional y libre. El objetivo
+          es que puedas grabar tu pantalla, tu camara y tu audio sin entregar tu contenido a terceros.
+        </p>
+        <p>
+          La aplicacion no requiere registro. Las grabaciones se procesan en tu propio navegador usando APIs del sistema
+          como Canvas, Web Audio, MediaRecorder e IndexedDB cuando la biblioteca local este habilitada.
+        </p>
+        <p>
+          Si en una etapa futura agregamos biblioteca local o proyectos guardados, esos datos seguiran quedando en tu
+          navegador. No se enviaran a un backend porque este proyecto mantiene la restriccion de ser 100% client-side.
+        </p>
+        <p>
+          Para despliegues en hosting tradicional recomendamos usar CSP y otras cabeceras de endurecimiento, pero la app
+          seguira funcionando como un sitio estatico compatible con cPanel.
+        </p>
+      </div>
+    </div>
+  </main>
+</SiteLayout>

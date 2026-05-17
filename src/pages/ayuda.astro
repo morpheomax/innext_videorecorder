@@ -1,0 +1,43 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+
+const title = 'Ayuda y flujo | Studio Recorder';
+const description = 'Guia rapida de uso del estudio de grabacion streaming y roadmap inmediato del editor multipista.';
+---
+
+<SiteLayout title={title} description={description}>
+  <main class="shell py-16">
+    <a href="/" class="text-sm text-sky-300">Volver al inicio</a>
+
+    <section class="mt-6 rounded-[32px] border border-white/8 bg-white/4 p-8">
+      <p class="text-sm uppercase tracking-[0.3em] text-emerald-300">Flujo rapido</p>
+      <h1 class="mt-4 text-4xl font-semibold text-white">Como usar el estudio actual</h1>
+
+      <div class="mt-8 grid gap-4 md:grid-cols-3">
+        <article class="rounded-[28px] border border-white/8 bg-slate-950/35 p-5">
+          <strong class="text-white">1. Elige la pantalla</strong>
+          <p class="mt-2 text-sm leading-7 text-slate-400">Escoge monitor, ventana o pestaña. Si el navegador lo permite, activa audio de sistema.</p>
+        </article>
+        <article class="rounded-[28px] border border-white/8 bg-slate-950/35 p-5">
+          <strong class="text-white">2. Activa camara y microfono</strong>
+          <p class="mt-2 text-sm leading-7 text-slate-400">Ajusta forma, borde, espejo y posicion de la camara antes de iniciar.</p>
+        </article>
+        <article class="rounded-[28px] border border-white/8 bg-slate-950/35 p-5">
+          <strong class="text-white">3. Graba y descarga</strong>
+          <p class="mt-2 text-sm leading-7 text-slate-400">La grabacion se genera localmente. Al detenerla, queda disponible para descargar y revisar.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="mt-8 rounded-[32px] border border-white/8 bg-white/4 p-8">
+      <p class="text-sm uppercase tracking-[0.3em] text-sky-300">Siguiente bloque</p>
+      <h2 class="mt-4 text-3xl font-semibold text-white">Lo que sigue en el editor multipista</h2>
+      <ul class="mt-6 grid gap-3 text-sm text-slate-300 md:grid-cols-2">
+        <li class="rounded-2xl border border-white/8 bg-slate-950/35 px-4 py-4">Timeline con pistas de video, audio, imagenes y overlays.</li>
+        <li class="rounded-2xl border border-white/8 bg-slate-950/35 px-4 py-4">Apertura inmediata del clip que acabas de grabar.</li>
+        <li class="rounded-2xl border border-white/8 bg-slate-950/35 px-4 py-4">Trim, mover clips, ordenar secuencias y mezclar intro/outro.</li>
+        <li class="rounded-2xl border border-white/8 bg-slate-950/35 px-4 py-4">Guardar proyectos localmente y exportar WebM fiable para publicar en YouTube.</li>
+      </ul>
+    </section>
+  </main>
+</SiteLayout>

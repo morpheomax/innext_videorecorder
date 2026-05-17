@@ -8,7 +8,8 @@ Todo local. No se sube nada. Sin tracking invasivo.
 - Mostrar claramente qué se está capturando.
 
 ## Datos almacenados (local)
-- Grabaciones y metadata en IndexedDB (solo si usuario lo activa / Sprint 2).
+- Grabaciones y metadata en IndexedDB.
+- Proyectos y assets de proyecto en IndexedDB.
 - Botón “Borrar todo local” (hard delete).
 
 ## Protección UI

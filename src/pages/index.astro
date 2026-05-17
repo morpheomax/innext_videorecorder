@@ -1,0 +1,119 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+
+const title = 'Studio Recorder | Grabador de pantalla y camara gratis sin registro';
+const description =
+  'Estudio web para grabar pantalla, camara, microfono y audio del sistema con estilo streaming. Todo local, sin cuentas y con editor multipista en desarrollo.';
+---
+
+<SiteLayout title={title} description={description}>
+  <header class="border-b border-white/8">
+    <div class="shell flex items-center justify-between gap-4 py-5">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/14 text-xl font-bold text-emerald-300">SR</span>
+        <div>
+          <strong class="block text-sm uppercase tracking-[0.3em] text-emerald-300">Studio Recorder</strong>
+          <span class="muted text-sm">Streaming capture studio para creadores</span>
+        </div>
+      </a>
+
+      <nav class="flex items-center gap-2 text-sm text-slate-300">
+        <a href="/ayuda" class="rounded-full px-4 py-2 hover:bg-white/5">Ayuda</a>
+        <a href="/privacidad" class="rounded-full px-4 py-2 hover:bg-white/5">Privacidad</a>
+        <a href="/studio" class="btn-primary">Abrir Studio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-grid border-b border-white/8">
+      <div class="shell grid gap-10 py-16 md:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div>
+          <p class="text-sm uppercase tracking-[0.4em] text-sky-300">Libre. Privado. Sin registro.</p>
+          <h1 class="mt-5 max-w-4xl text-5xl font-semibold tracking-tight text-white md:text-6xl">
+            Graba tutoriales con look streaming y editalos en el mismo flujo.
+          </h1>
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            Studio Recorder convierte tu navegador en un set completo para grabar pantalla, camara, microfono y
+            audio del sistema sin enviar nada a servidores. Ideal para cursos, capsulas cortas, onboarding y soporte.
+          </p>
+
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="/studio" class="btn-primary">Empezar a grabar</a>
+            <a href="/ayuda" class="btn-secondary">Ver el flujo de trabajo</a>
+          </div>
+
+          <div class="mt-10 grid gap-4 sm:grid-cols-3">
+            <article class="glass rounded-[24px] p-4">
+              <p class="text-sm font-semibold text-white">Preview real</p>
+              <p class="mt-2 text-sm text-slate-400">Lo que ves en el canvas es exactamente lo que sale en tu exportacion.</p>
+            </article>
+            <article class="glass rounded-[24px] p-4">
+              <p class="text-sm font-semibold text-white">Set personalizable</p>
+              <p class="mt-2 text-sm text-slate-400">Camara circular, cuadrada o vertical, borde de color y posiciones rapidas.</p>
+            </article>
+            <article class="glass rounded-[24px] p-4">
+              <p class="text-sm font-semibold text-white">Editor integrado</p>
+              <p class="mt-2 text-sm text-slate-400">La nueva arquitectura ya esta orientada a un editor multipista profesional.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="glass rounded-[32px] p-5">
+          <div class="rounded-[28px] border border-white/8 bg-slate-950/70 p-4">
+            <div class="mb-4 flex items-center justify-between text-sm text-slate-300">
+              <span>Pipeline del estudio</span>
+              <span class="rounded-full bg-emerald-400/14 px-3 py-1 text-emerald-300">100% local</span>
+            </div>
+            <div class="grid gap-3">
+              <div class="rounded-3xl border border-white/8 bg-white/3 px-4 py-4">
+                <strong class="block text-white">1. Captura streaming</strong>
+                <p class="mt-2 text-sm text-slate-400">Pantalla + camara + microfono + audio del sistema cuando el navegador lo permite.</p>
+              </div>
+              <div class="rounded-3xl border border-white/8 bg-white/3 px-4 py-4">
+                <strong class="block text-white">2. Compositor canvas</strong>
+                <p class="mt-2 text-sm text-slate-400">PiP reubicable con formas, presets 16:9, 9:16 y 1:1, preview igual al resultado.</p>
+              </div>
+              <div class="rounded-3xl border border-white/8 bg-white/3 px-4 py-4">
+                <strong class="block text-white">3. Editor multipista</strong>
+                <p class="mt-2 text-sm text-slate-400">Timeline para secuencias, intros, audios, imagenes, textos y export final.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell py-16 md:py-20">
+      <div class="mb-10 max-w-3xl">
+        <p class="text-sm uppercase tracking-[0.3em] text-emerald-300">Pensado para trabajo real</p>
+        <h2 class="section-title mt-4">La idea se mantiene: grabar y editar rapido sin pagar software caro.</h2>
+        <p class="mt-4 text-lg text-slate-300">
+          Este estudio nace para quienes necesitan producir tutoriales o capsulas cortas con presencia de camara,
+          pantalla, voz y secuencias ordenadas, pero sin depender de licencias costosas, instalaciones pesadas ni cuentas.
+        </p>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-3">
+        <article class="glass rounded-[28px] p-6">
+          <h3 class="text-xl font-semibold text-white">Grabador tipo streaming</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400">
+            Construido para sentirte dentro de un set: posicion rapida de la camara, mezcla de audio y formatos listos para YouTube o vertical.
+          </p>
+        </article>
+        <article class="glass rounded-[28px] p-6">
+          <h3 class="text-xl font-semibold text-white">Flujo privado en navegador</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400">
+            Tus grabaciones se procesan localmente. No hay backend, no hay cuentas, no hay terceros almacenando el contenido.
+          </p>
+        </article>
+        <article class="glass rounded-[28px] p-6">
+          <h3 class="text-xl font-semibold text-white">Base para editor multipista</h3>
+          <p class="mt-3 text-sm leading-7 text-slate-400">
+            La nueva estructura separa motor, UI y flujo de trabajo para crecer hacia un estudio completo sin repetir el acoplamiento anterior.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+</SiteLayout>
