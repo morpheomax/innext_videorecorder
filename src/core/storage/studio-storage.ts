@@ -1,4 +1,4 @@
-import type { EditorClip } from '../../features/editor/types';
+import type { EditorClip, EditorTrackDefinition } from '../../features/editor/types';
 import type { StudioFormat } from '../compositor/stream-compositor';
 
 const DB_NAME = 'studio-recorder-db';
@@ -42,6 +42,10 @@ export interface ProjectRecord {
   updatedAt: string;
   duration: number;
   format?: StudioFormat;
+  tracks?: EditorTrackDefinition[];
+  trackVolumes?: Record<string, number>;
+  trackPans?: Record<string, number>;
+  collapsedTrackIds?: string[];
   clips: Array<Omit<EditorClip, 'url' | 'blob'>>;
 }
 

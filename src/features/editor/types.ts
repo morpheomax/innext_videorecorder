@@ -1,6 +1,6 @@
 import type { StudioFormat } from '../../core/compositor/stream-compositor';
 
-export type EditorTrackId = 'video-1' | 'video-2' | 'video-3' | 'audio-1' | 'audio-2' | 'audio-3' | 'overlay-1';
+export type EditorTrackId = string;
 
 export type EditorClipKind = 'video' | 'audio' | 'image' | 'text';
 
@@ -35,6 +35,7 @@ export interface EditorAsset {
   blob: Blob;
   name: string;
   format: StudioFormat;
+  durationSeconds?: number;
 }
 
 export interface EditorTrackDefinition {

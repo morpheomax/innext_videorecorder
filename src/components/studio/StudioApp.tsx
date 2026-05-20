@@ -17,6 +17,7 @@ type RecorderState = 'inactive' | 'recording' | 'paused';
 type Toast = { id: number; message: string; tone: 'success' | 'error' | 'info' };
 type StudioView = 'studio' | 'editor';
 type DeviceStatusTone = 'ready' | 'warning' | 'idle';
+type AudioSourceMode = 'both' | 'mic' | 'system';
 
 const formatOptions: Array<{ value: StudioFormat; label: string; hint: string }> = [
   { value: '16:9', label: '16:9', hint: 'YouTube y cursos horizontales' },
@@ -28,6 +29,12 @@ const shapeOptions: Array<{ value: CameraShape; label: string }> = [
   { value: 'circle', label: 'Circular' },
   { value: 'square', label: 'Cuadrada' },
   { value: 'vertical', label: 'Vertical' },
+];
+
+const audioSourceOptions: Array<{ value: AudioSourceMode; label: string; hint: string }> = [
+  { value: 'both', label: 'Mic + sistema', hint: 'Mezcla voz y audio compartido si existe' },
+  { value: 'mic', label: 'Solo microfono', hint: 'Usa solo tu voz o dispositivo externo' },
+  { value: 'system', label: 'Solo sistema', hint: 'Usa solo audio de pantalla/pestana' },
 ];
 
 const hotkeyLabels: Array<{ combo: string; action: string }> = [
@@ -62,6 +69,26 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function detectMediaDuration(blob: Blob) {
+  return new Promise<number>((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const element = document.createElement(blob.type.startsWith('audio') ? 'audio' : 'video');
+
+    const cleanup = () => URL.revokeObjectURL(url);
+    element.preload = 'metadata';
+    element.onloadedmetadata = () => {
+      const duration = Number.isFinite(element.duration) ? element.duration : 0;
+      cleanup();
+      resolve(duration);
+    };
+    element.onerror = () => {
+      cleanup();
+      resolve(0);
+    };
+    element.src = url;
+  });
+}
+
 export default function StudioApp() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const captureRef = useRef<CaptureManager | null>(null);
@@ -85,6 +112,7 @@ export default function StudioApp() {
   const [cursorMode, setCursorMode] = useState<'always' | 'motion' | 'never'>('always');
   const [micGain, setMicGain] = useState(1);
   const [systemGain, setSystemGain] = useState(1);
+  const [audioSourceMode, setAudioSourceMode] = useState<AudioSourceMode>('both');
   const [hasSystemAudio, setHasSystemAudio] = useState(false);
   const [activePosition, setActivePosition] = useState<PositionPreset>('bottom-right');
   const [latestRecordingUrl, setLatestRecordingUrl] = useState<string | null>(null);
@@ -168,12 +196,12 @@ export default function StudioApp() {
   }, [mirrorCamera]);
 
   useEffect(() => {
-    mixerRef.current?.setMicGain(micGain);
-  }, [micGain]);
+    mixerRef.current?.setMicGain(audioSourceMode === 'system' ? 0 : micGain);
+  }, [audioSourceMode, micGain]);
 
   useEffect(() => {
-    mixerRef.current?.setSystemGain(systemGain);
-  }, [systemGain]);
+    mixerRef.current?.setSystemGain(audioSourceMode === 'mic' ? 0 : systemGain);
+  }, [audioSourceMode, systemGain]);
 
   useEffect(() => {
     if (recordingState !== 'recording') {
@@ -328,6 +356,8 @@ export default function StudioApp() {
       const connectedSystemAudio = mixer.setSystemStream(stream);
       setHasSystemAudio(connectedSystemAudio);
 
+      mixer.setSystemGain(audioSourceMode === 'mic' ? 0 : systemGain);
+
       stream.getVideoTracks()[0]?.addEventListener('ended', () => {
         compositor.setScreenStream(null);
         mixer.setSystemStream(null);
@@ -413,6 +443,19 @@ export default function StudioApp() {
       return;
     }
 
+    if (audioSourceMode === 'system' && !hasSystemAudio) {
+      addToast('La fuente actual no entrega audio de sistema. Comparte una pestana con audio o cambia a microfono.', 'error');
+      return;
+    }
+
+    if (audioSourceMode !== 'system' && !selectedMic) {
+      addToast('No hay microfono activo. La grabacion continuara sin voz.', 'info');
+    }
+
+    if (audioSourceMode === 'both' && !hasSystemAudio) {
+      addToast('Audio de sistema no disponible en esta fuente. Se grabara el microfono si esta activo.', 'info');
+    }
+
     try {
       recorder.start(compositor.getStream(30), mixer.getMixedTrack());
       setSecondsRecorded(0);
@@ -446,12 +489,15 @@ export default function StudioApp() {
     setLatestRecordingMime(blob.type || 'video/webm');
 
     const recordingId = `rec-${Date.now()}`;
+    const detectedDuration = await detectMediaDuration(blob);
+    const durationMs = detectedDuration > 0 ? Math.round(detectedDuration * 1000) : secondsRecorded * 1000;
+
     try {
       await studioStorage.saveRecording({
         id: recordingId,
         name: createDownloadName(),
         createdAt: new Date().toISOString(),
-        durationMs: secondsRecorded * 1000,
+        durationMs,
         mimeType: blob.type || 'video/webm',
         sizeBytes: blob.size,
         format,
@@ -462,10 +508,9 @@ export default function StudioApp() {
       addToast('No fue posible guardar la grabacion en la biblioteca local.', 'error');
     }
 
-    setEditorAsset({ blob, name: createDownloadName(), format });
+    setEditorAsset({ blob, name: createDownloadName(), format, durationSeconds: durationMs / 1000 });
     setEditorSessionKey((current) => current + 1);
-    setView('editor');
-    addToast('Grabacion lista. Abriendo editor multipista.', 'success');
+    addToast('Grabacion lista. Puedes revisarla o abrirla en el editor.', 'success');
   }
 
   async function openRecordingInEditor(recordingId: string) {
@@ -485,7 +530,12 @@ export default function StudioApp() {
       latestUrlRef.current = url;
       setLatestRecordingUrl(url);
       setLatestRecordingMime(recording.mimeType);
-      setEditorAsset({ blob: recording.blob, name: recording.name, format: recording.format ?? '16:9' });
+      setEditorAsset({
+        blob: recording.blob,
+        name: recording.name,
+        format: recording.format ?? '16:9',
+        durationSeconds: recording.durationMs / 1000,
+      });
       setEditorSessionKey((current) => current + 1);
       setView('editor');
       addToast('Grabacion cargada desde la biblioteca local.', 'success');
@@ -539,6 +589,10 @@ export default function StudioApp() {
     ];
     return parts.join(' · ');
   }, [deviceAccess]);
+
+  const audioModeLabel = useMemo(() => {
+    return audioSourceOptions.find((option) => option.value === audioSourceMode)?.label ?? 'Mic + sistema';
+  }, [audioSourceMode]);
 
   if (view === 'editor') {
     return (
@@ -730,6 +784,35 @@ export default function StudioApp() {
           <section className="rounded-3xl border border-white/8 bg-white/3 p-4">
             <h3 className="text-sm font-semibold text-white">Audio y cursor</h3>
             <div className="mt-4 space-y-4 text-sm">
+              <div>
+                <span className="mb-2 block text-slate-300">Fuente de audio</span>
+                <div className="grid gap-2">
+                  {audioSourceOptions.map((option) => {
+                    const unavailableSystemOnly = option.value === 'system' && !hasSystemAudio;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setAudioSourceMode(option.value)}
+                        className={[
+                          'rounded-2xl border px-3 py-3 text-left transition',
+                          audioSourceMode === option.value
+                            ? 'border-emerald-300/60 bg-emerald-400/12 text-white'
+                            : 'border-white/10 bg-slate-950/35 text-slate-300 hover:border-white/20',
+                          unavailableSystemOnly ? 'opacity-75' : '',
+                        ].join(' ')}
+                      >
+                        <span className="block font-semibold">{option.label}</span>
+                        <span className="mt-1 block text-xs text-slate-400">
+                          {unavailableSystemOnly ? 'No disponible en la pantalla actual. ' : ''}{option.hint}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <label className="block">
                 <div className="mb-2 flex items-center justify-between text-slate-300">
                   <span>Ganancia microfono</span>
@@ -742,6 +825,7 @@ export default function StudioApp() {
                   step="0.1"
                   value={micGain}
                   onChange={(event) => setMicGain(Number(event.target.value))}
+                  disabled={audioSourceMode === 'system'}
                   className="w-full accent-emerald-400"
                 />
               </label>
@@ -758,6 +842,7 @@ export default function StudioApp() {
                   step="0.1"
                   value={systemGain}
                   onChange={(event) => setSystemGain(Number(event.target.value))}
+                  disabled={audioSourceMode === 'mic'}
                   className="w-full accent-sky-400"
                 />
               </label>
@@ -776,11 +861,13 @@ export default function StudioApp() {
               </label>
 
               <div className="rounded-2xl border border-white/8 bg-slate-950/35 px-3 py-3 text-sm text-slate-300">
-                <strong className="block text-white">Audio de sistema</strong>
+                <strong className="block text-white">Audio activo: {audioModeLabel}</strong>
                 <span className={hasSystemAudio ? 'text-emerald-300' : 'text-amber-300'}>
                   {hasSystemAudio
                     ? 'Disponible en la fuente actual.'
-                    : 'No garantizado. Depende del navegador y de la fuente compartida.'}
+                    : audioSourceMode === 'system'
+                      ? 'La fuente actual no entrega audio de sistema. Cambia de fuente o usa microfono.'
+                      : 'Audio de sistema no garantizado. Si no existe, se usara el microfono activo.'}
                 </span>
               </div>
             </div>
@@ -902,7 +989,11 @@ export default function StudioApp() {
                 </li>
                 <li className="flex items-center justify-between rounded-2xl border border-white/6 bg-white/3 px-3 py-3">
                   <span>Audio</span>
-                  <strong className="text-white">{selectedMic || hasSystemAudio ? 'Listo' : mics.length > 0 ? 'Mic disponible' : 'Sin permisos'}</strong>
+                  <strong className="text-white">
+                    {audioSourceMode === 'system'
+                      ? hasSystemAudio ? 'Sistema listo' : 'Sistema no disponible'
+                      : selectedMic || hasSystemAudio ? audioModeLabel : mics.length > 0 ? 'Mic disponible' : 'Sin permisos'}
+                  </strong>
                 </li>
                 <li className="flex items-center justify-between rounded-2xl border border-white/6 bg-white/3 px-3 py-3">
                   <span>Grabacion</span>
@@ -925,8 +1016,8 @@ export default function StudioApp() {
               <p className="text-xs uppercase tracking-[0.3em] text-emerald-300">Biblioteca local</p>
               <h2 className="mt-2 text-xl font-semibold text-white">Grabacion lista para entrar a timeline</h2>
               <p className="mt-2 max-w-2xl text-sm text-slate-400">
-                Al detener el set, la grabacion se abre directo en el editor multipista. Desde ahi ya puedes sumar pistas,
-                ordenar clips, recortar, mezclar audio, importar imagenes y exportar WebM.
+                Al detener el set, podras revisar la grabacion y decidir si quieres abrirla en el editor multipista. Desde ahi ya puedes sumar pistas,
+                ordenar clips, recortar, mezclar audio, importar imagenes y exportar WebM o MP4.
               </p>
             </div>
             <button type="button" className="rounded-full border border-orange-300/20 px-4 py-2 text-sm text-orange-200" onClick={() => void clearLocalData()}>
@@ -948,14 +1039,14 @@ export default function StudioApp() {
                     Descargar de nuevo
                   </a>
                   <button type="button" className="btn-secondary" onClick={() => setView('editor')}>
-                    Abrir editor
+                    Editar en timeline
                   </button>
                 </div>
               </div>
             </div>
           ) : (
             <div className="mt-5 rounded-[24px] border border-dashed border-white/12 bg-slate-950/25 px-4 py-8 text-sm text-slate-400">
-              Tu grabacion aparecera aqui apenas detengas el set y se abrira automaticamente en el editor multipista.
+              Tu grabacion aparecera aqui apenas detengas el set. Podras revisarla, descargarla o abrirla en el editor.
             </div>
           )}
 
