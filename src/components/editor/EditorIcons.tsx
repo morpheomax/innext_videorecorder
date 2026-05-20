@@ -2,7 +2,7 @@ import type { EditorClip } from '../../features/editor/types';
 
 export type SidebarSection = 'media' | 'audio' | 'text' | 'captions' | 'transitions' | 'effects' | 'projects';
 
-export type IconName = 'play' | 'pause' | 'cut' | 'copy' | 'paste' | 'duplicate' | 'rewind-small' | 'forward-small' | 'rewind' | 'forward' | 'select' | 'snap' | 'up' | 'down' | 'close' | 'trash';
+export type IconName = 'play' | 'pause' | 'cut' | 'copy' | 'paste' | 'duplicate' | 'rewind-small' | 'forward-small' | 'rewind' | 'forward' | 'select' | 'hand' | 'snap' | 'up' | 'down' | 'close' | 'trash';
 
 export function SidebarSectionIcon({ section }: { section: SidebarSection }) {
   const commonProps = {
@@ -108,6 +108,8 @@ export function ToolbarIcon({ name }: { name: IconName }) {
       return <svg {...commonProps}><path d="m7 8 4 4-4 4" /><path d="m13 8 4 4-4 4" /></svg>;
     case 'select':
       return <svg {...commonProps}><path d="m5 4 11 8-5 1 2 6-2 1-2-6-4 3z" /></svg>;
+    case 'hand':
+      return <svg {...commonProps}><path d="M7 11V6.5a1.5 1.5 0 0 1 3 0V11" /><path d="M10 10V5.5a1.5 1.5 0 0 1 3 0V11" /><path d="M13 10V7a1.5 1.5 0 0 1 3 0v5" /><path d="M16 11.5V10a1.5 1.5 0 0 1 3 0v3.5c0 4-2.5 6.5-6.5 6.5H12c-2.2 0-3.8-.9-5-2.5L4.8 14.7a1.6 1.6 0 0 1 2.4-2.1L9 14" /></svg>;
     case 'snap':
       return <svg {...commonProps}><path d="M7 7h4v4" /><path d="M17 17h-4v-4" /><path d="M7 17l10-10" /></svg>;
     case 'up':

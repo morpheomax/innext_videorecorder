@@ -45,6 +45,7 @@ const EDITOR_FORMAT_OPTIONS: Array<{ value: StudioFormat; label: string }> = [
 
 type ExportFormat = 'webm' | 'mp4';
 type VisualFilter = NonNullable<EditorClip['filter']>;
+type TimelineTool = 'select' | 'hand';
 
 const FILTER_LABELS: Array<{ value: VisualFilter; label: string; css: string }> = [
   { value: 'none', label: 'Normal', css: 'none' },
@@ -340,6 +341,7 @@ export default function StudioEditor({ initialAsset, sessionKey, onBackToStudio 
   const [trackPans, setTrackPans] = useState<Record<string, number>>({});
   const [openTrackControl, setOpenTrackControl] = useState<{ trackId: EditorTrackId; type: 'volume' | 'pan' } | null>(null);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
+  const [timelineTool, setTimelineTool] = useState<TimelineTool>('select');
 
   const totalDuration = useMemo(
     () => clips.reduce((max, clip) => Math.max(max, clipEnd(clip)), 0),
@@ -2825,7 +2827,8 @@ export default function StudioEditor({ initialAsset, sessionKey, onBackToStudio 
               <button type="button" className="rounded-full border border-teal-300/20 bg-teal-400/10 px-3 py-1 text-teal-100" onClick={() => addTrack('audio')}>+ Audio</button>
               <button type="button" className="rounded-full border border-fuchsia-300/20 bg-fuchsia-400/10 px-3 py-1 text-fuchsia-100" onClick={() => addTrack('overlay')}>+ Overlay</button>
               <span className="mx-1 h-5 w-px bg-white/10" />
-              <button type="button" title="Seleccionar" className="rounded-xl border border-white/10 p-1.5 text-slate-200"><ToolbarIcon name="select" /></button>
+              <button type="button" title="Seleccionar" className={[ 'rounded-xl border p-1.5 text-slate-200', timelineTool === 'select' ? 'border-sky-300/50 bg-sky-400/15' : 'border-white/10' ].join(' ')} onClick={() => setTimelineTool('select')}><ToolbarIcon name="select" /></button>
+              <button type="button" title="Mover clips" className={[ 'rounded-xl border p-1.5 text-slate-200', timelineTool === 'hand' ? 'border-emerald-300/50 bg-emerald-400/15' : 'border-white/10' ].join(' ')} onClick={() => setTimelineTool('hand')}><ToolbarIcon name="hand" /></button>
               <button type="button" title="Cortar [S]" className="rounded-xl border border-white/10 p-1.5 text-slate-200 disabled:opacity-40" onClick={() => selectedClip && splitClip(selectedClip.id)} disabled={!selectedClip}><ToolbarIcon name="cut" /></button>
               <button type="button" title="Copiar" className="rounded-xl border border-white/10 p-1.5 text-slate-200 disabled:opacity-40" onClick={() => selectedClip && copyClip(selectedClip.id)} disabled={!selectedClip}><ToolbarIcon name="copy" /></button>
               <button type="button" title="Pegar" className="rounded-xl border border-white/10 p-1.5 text-slate-200" onClick={pasteClip}><ToolbarIcon name="paste" /></button>
@@ -2844,7 +2847,7 @@ export default function StudioEditor({ initialAsset, sessionKey, onBackToStudio 
             </div>
           </div> : <div className="flex h-0 justify-end px-4"><button type="button" className="relative z-40 mt-2 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1 text-xs text-slate-200" onClick={() => setTimelineCollapsed(false)}>Expandir timeline</button></div>}
 
-          <div ref={timelineScrollRef} className="h-full overflow-auto px-4 pb-2">
+          <div ref={timelineScrollRef} className="h-full select-none overflow-auto px-4 pb-2">
             <div className={['relative', timelineCollapsed ? 'min-h-[48px]' : 'min-h-[420px]'].join(' ')} style={{ width: timelineWidth }}>
               <div
                 ref={timelineRulerRef}
@@ -2929,7 +2932,7 @@ export default function StudioEditor({ initialAsset, sessionKey, onBackToStudio 
 
                   return (
                     <div key={track.id} className="grid items-stretch gap-0" style={{ gridTemplateColumns: `${TIMELINE_LABEL_WIDTH}px 1fr` }}>
-                      <div className="sticky left-0 z-50 rounded-l-2xl border border-r-0 border-white/8 bg-[#05070d] px-3 py-2 text-sm text-slate-200 shadow-[18px_0_24px_rgba(0,0,0,0.75)] ring-1 ring-black/60">
+                      <div className="sticky left-0 z-50 rounded-l-2xl border border-r-0 border-white/8 bg-[#05070d] px-3 py-2 text-sm text-slate-200 ring-1 ring-black/60 before:pointer-events-none before:absolute before:bottom-0 before:right-[-1px] before:top-0 before:w-px before:bg-[#05070d]">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <strong className="block truncate text-white">{track.label}</strong>
@@ -3072,7 +3075,21 @@ export default function StudioEditor({ initialAsset, sessionKey, onBackToStudio 
                           const waveform = clipWaveforms.get(clip.id);
 
                           return (
-                            <div key={clip.id} className={[ 'absolute rounded-2xl border px-3 shadow-lg transition', isTrackCollapsed ? 'top-1 h-8 py-1' : 'top-2 h-16 py-2', isSelected ? 'border-emerald-300/70 bg-emerald-400/18 text-white' : clip.kind === 'audio' ? 'border-teal-300/25 bg-teal-400/15 text-slate-100 hover:border-teal-200/35' : clip.kind === 'text' ? 'border-fuchsia-300/25 bg-fuchsia-400/15 text-slate-100 hover:border-fuchsia-200/35' : 'border-white/10 bg-sky-400/12 text-slate-100 hover:border-white/20' ].join(' ')} style={{ left, width }} onPointerDown={(event) => { beginHistoryTransaction(clips); dragRef.current = { type: 'move', clipId: clip.id, startX: event.clientX, startTime: clip.startTime, startTrackId: clip.trackId }; setSelectedClipId(clip.id); }} onClick={() => setSelectedClipId(clip.id)}>
+                            <div
+                              key={clip.id}
+                              className={[ 'absolute select-none rounded-2xl border px-3 shadow-lg transition', timelineTool === 'hand' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer', isTrackCollapsed ? 'top-1 h-8 py-1' : 'top-2 h-16 py-2', isSelected ? 'border-emerald-300/70 bg-emerald-400/18 text-white' : clip.kind === 'audio' ? 'border-teal-300/25 bg-teal-400/15 text-slate-100 hover:border-teal-200/35' : clip.kind === 'text' ? 'border-fuchsia-300/25 bg-fuchsia-400/15 text-slate-100 hover:border-fuchsia-200/35' : 'border-white/10 bg-sky-400/12 text-slate-100 hover:border-white/20' ].join(' ')}
+                              style={{ left, width }}
+                              onPointerDown={(event) => {
+                                event.preventDefault();
+                                setSelectedClipId(clip.id);
+                                if (timelineTool !== 'hand') {
+                                  return;
+                                }
+                                beginHistoryTransaction(clips);
+                                dragRef.current = { type: 'move', clipId: clip.id, startX: event.clientX, startTime: clip.startTime, startTrackId: clip.trackId };
+                              }}
+                              onClick={() => setSelectedClipId(clip.id)}
+                            >
                               <button type="button" className="absolute left-0 top-0 h-full w-3 cursor-ew-resize rounded-l-2xl bg-black/20" onPointerDown={(event) => { event.stopPropagation(); beginHistoryTransaction(clips); dragRef.current = { type: 'trim-start', clipId: clip.id, startX: event.clientX, startTrim: clip.trimStart, startTime: clip.startTime }; }} />
                               <button type="button" className="absolute right-0 top-0 h-full w-3 cursor-ew-resize rounded-r-2xl bg-black/20" onPointerDown={(event) => { event.stopPropagation(); beginHistoryTransaction(clips); dragRef.current = { type: 'trim-end', clipId: clip.id, startX: event.clientX, startTrim: clip.trimEnd }; }} />
                               {!isTrackCollapsed ? <div className="pointer-events-none absolute inset-x-3 bottom-2 top-2 overflow-hidden rounded-xl">
